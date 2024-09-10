@@ -48,7 +48,7 @@ const ticketSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Employee",
       required: true,
-      default: "66ddf00cde0f0141ca574d21",
+      default: "66e06f48dcadba975016eabd",
     },
     subtickets: [
       {

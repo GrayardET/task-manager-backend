@@ -6,8 +6,8 @@ const router = express.Router();
 
 // Create a new ticket
 router.post("/", async (req, res) => {
+  console.log(req.body);
   try {
-    console.log(req.body);
     const {
       ticketNumber,
       ticketName,
@@ -18,6 +18,7 @@ router.post("/", async (req, res) => {
       author,
       status,
       type,
+      parentTicket,
     } = req.body;
 
     console.log("got here 0");
@@ -38,6 +39,7 @@ router.post("/", async (req, res) => {
         .json({ message: "One or more assigned employees do not exist." });
     }
 
+    // Create the new ticket
     const newTicket = new Ticket({
       ticketNumber,
       ticketName,
@@ -51,8 +53,27 @@ router.post("/", async (req, res) => {
     });
 
     await newTicket.save();
+
+    // If a parent ticket is provided, add the new ticket to the parent ticket's subtickets
+    if (parentTicket) {
+      console.log("Parent Ticket provided:", parentTicket);
+      const parentTicketObj = await Ticket.findById(parentTicket);
+
+      if (!parentTicketObj) {
+        return res.status(404).json({ message: "Parent ticket not found." });
+      }
+
+      // Add the new ticket's ID to the subtickets array of the parent ticket
+      parentTicketObj.subtickets.push(newTicket._id);
+
+      // Save the updated parent ticket
+      await parentTicketObj.save();
+    }
+
+    // Send the response with the newly created ticket
     res.status(201).json(newTicket);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 });
